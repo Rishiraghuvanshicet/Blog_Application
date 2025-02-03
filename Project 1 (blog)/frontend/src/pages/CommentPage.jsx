@@ -25,14 +25,13 @@ function CommentPage() {
   }, [id]);
 
 
-
-  const handleCommentSubmit = async () => {
+const handleCommentSubmit = async () => {
     if (!commentText) return;
     try {
+      console.log("Submitting comment with text:", commentText);  // Log the comment text
       const response = await axios.post(`http://localhost:3000/api/user/posts/comment/${id}`, {
         text: commentText,
       });
-      console.log("Response from backend:", response); 
       setComments(response.data.blog.comments || []);
       setCommentText("");
     } catch (error) {

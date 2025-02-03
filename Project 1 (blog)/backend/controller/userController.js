@@ -1,9 +1,10 @@
 const User = require("../models/userSchema");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
-const generateAccessToken = require("../utils/generateToken");
+const jwt = require("jsonwebtoken");
+const { generateAccessToken } = require("../utils/generateToken");
+const { generateRefreshToken } = require("../utils/generateToken");
 const { response } = require("express");
-require('dotenv').config();
+require("dotenv").config();
 
 // Register new user
 const userRegister = async (req, res) => {
@@ -25,7 +26,7 @@ const userRegister = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10); // Generate a salt
     const hashedPassword = await bcrypt.hash(password, salt);
-     // Hash password
+    // Hash password
     newUser.password = hashedPassword;
 
     await newUser.save();
@@ -49,74 +50,78 @@ const userLogin = async (req, res) => {
       password,
       foundUser.password
     );
-    
+
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const accessToken = generateAccessToken.generateAccessToken(User);
+    const accessToken = generateAccessToken(foundUser);
+    const refreshToken = generateRefreshToken(foundUser);
 
-     res.status(200).json({
+    res.status(200).json({
       status: "success",
-      message: "logged in succesfully",
+      message: "logged in successfully",
       data: {
-        id: User._id,
-        username : User.username,
-        email : User.email,
+        id: foundUser._id,
+        username: foundUser.username,
+        email: foundUser.email,
         accessToken: accessToken,
+        refreshToken: refreshToken,
       },
-     })
-    }
-  catch (error) {
+    });
+  } catch (error) {
     return res.status(500).json({ message: `Server error: ${error.message}` });
   }
 };
 
 //Get User Details
-const userDetail = async (req, res)=>{
-  const { id }=req.params.id;
-  try{
+const userDetail = async (req, res) => {
+  const { id } = req.params;
+  try {
     const user = await User.findById(id);
-    if(!user){
-      return res.statue(404).json({message:"user not found"});
+    if (!user) {
+      return res.statue(404).json({ message: "user not found" });
     }
-    res.status(200).json(user)
-  }
-  catch(error) {
+    res.status(200).json(user);
+  } catch (error) {
     console.error("Error fetching the user:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
-}
+};
 
 // Logout user
-const userLogout = async (req, res ) => {
-  try { 
+const userLogout = async (req, res) => {
+  try {
     const { username } = req.body;
 
     const user = await User.findOneAndUpdate(
-      { username : username },
-      {$unset : {jwtToken :""}},
-      {new:true}
+      { username: username },
+      { $unset: { jwtToken: "" } },
+      { new: true }
     );
 
-    if(!user){
+    if (!user) {
       return res.status(401).json({
         status: "failure",
         message: "User not found",
       });
-      };
-
-      res.status(200).json({
-        status: "success",
-        message: "Logged out successfully",
-      });
-    }catch(error) {
-      res.status(500),json({
-        status:"failure",
-        message: error.message
-      });
     }
+    
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
 
+    res.status(200).json({
+      status: "success",
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    res.status(500),
+      json({
+        status: "failure",
+        message: error.message,
+      });
+  }
+};
 
-  };
-
-module.exports = { userRegister, userLogin,userDetail,userLogout };
+module.exports = { userRegister, userLogin, userDetail, userLogout };

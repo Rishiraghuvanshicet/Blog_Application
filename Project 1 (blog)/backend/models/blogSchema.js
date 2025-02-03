@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const blogSchema = new Schema({
   author: {
     type: Schema.Types.ObjectId,
-    ref: 'user',
+    ref: 'User',
     required: true,
   },
   title: {
@@ -27,10 +27,10 @@ const blogSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  likes: {
+  likes: [{
     type: Schema.Types.ObjectId,
-    ref: 'user',
-  },
+    ref: 'User',
+  }],
   comments: [
     {
       text: {

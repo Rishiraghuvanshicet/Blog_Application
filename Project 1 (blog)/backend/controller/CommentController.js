@@ -9,6 +9,7 @@ const addComment = async (req, res) => {
 
     if (!blog) {
       alert("Blog post not found");
+      console.log('post found')
       return res.status(404).json({ message: "Blog post not found" });
     }
 

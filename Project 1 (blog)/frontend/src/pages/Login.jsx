@@ -22,9 +22,8 @@ const Login = ({setAuthentication}) => {
         signinDetail
       );
       if (response.status === 200) {
-        sessionStorage.setItem('accessToken',`Bearer${response.data.ACCESS_TOKEN_SECRET}`);
-        sessionStorage.setItem('refreshToken',`Bearer${response.data.REFRESH_TOKEN_SECRET}`);
-        
+        sessionStorage.setItem('accessToken', `Bearer ${response.data.data.accessToken}`);
+        sessionStorage.setItem('refreshToken', `Bearer ${response.data.data.refreshToken}`);    
         setAccount({email:response.data.email,name:response.data.name});
         setAuthentication(true);
         navigate("/");
